@@ -68,11 +68,19 @@ func (h *SharedHandler) OnChange(key string, obj runtime.Object) error {
 	handlers := h.handlers
 	h.lock.RUnlock()
 
+	onChangeStart := time.Now()
+	// 打印 obj, 记录开始时间
+	fmt.Printf("key: %s, obj: %v, time: %v\n", key, obj, onChangeStart)
+
 	for _, handler := range handlers {
 		var hasError bool
 		reconcileStartTS := time.Now()
 
 		newObj, err := handler.handler.OnChange(key, obj)
+
+		// 打印 handler name , obj
+		fmt.Printf("handler name: %s, obj: %v\n", handler.name, obj)
+
 		if err != nil && !errors.Is(err, ErrIgnore) {
 			errs = append(errs, &handlerError{
 				HandlerName: handler.name,
@@ -95,6 +103,9 @@ func (h *SharedHandler) OnChange(key string, obj runtime.Object) error {
 			}
 		}
 	}
+
+	// 打印 obj, 记录结束时间, 耗时
+	fmt.Printf("key: %s, obj: %v, time: %v, cost: %v\n", key, obj, time.Now(), time.Since(onChangeStart))
 
 	return errs.ToErr()
 }
