@@ -70,7 +70,7 @@ func (h *SharedHandler) OnChange(key string, obj runtime.Object) error {
 
 	onChangeStart := time.Now()
 	// 打印 obj, 记录开始时间
-	fmt.Printf("key: %s, obj: %v, time: %v\n", key, obj, onChangeStart)
+	fmt.Printf("key: %s, start time: %v\n", key, onChangeStart)
 
 	for _, handler := range handlers {
 		var hasError bool
@@ -78,8 +78,8 @@ func (h *SharedHandler) OnChange(key string, obj runtime.Object) error {
 
 		newObj, err := handler.handler.OnChange(key, obj)
 
-		// 打印 handler name , obj
-		fmt.Printf("handler name: %s, obj: %v\n", handler.name, obj)
+		// 打印 key, handler name
+		fmt.Printf("key: %s, handler name: %s\n", key, handler.name)
 
 		if err != nil && !errors.Is(err, ErrIgnore) {
 			errs = append(errs, &handlerError{
@@ -105,7 +105,7 @@ func (h *SharedHandler) OnChange(key string, obj runtime.Object) error {
 	}
 
 	// 打印 obj, 记录结束时间, 耗时
-	fmt.Printf("key: %s, obj: %v, time: %v, cost: %v\n", key, obj, time.Now(), time.Since(onChangeStart))
+	fmt.Printf("key: %s, time: %v, cost: %v\n", key, time.Now(), time.Since(onChangeStart))
 
 	return errs.ToErr()
 }
