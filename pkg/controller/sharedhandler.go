@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"k8s.io/apimachinery/pkg/util/uuid"
 	"reflect"
 	"strings"
 	"sync"
@@ -69,8 +70,9 @@ func (h *SharedHandler) OnChange(key string, obj runtime.Object) error {
 	h.lock.RUnlock()
 
 	onChangeStart := time.Now()
+	traceId := uuid.NewUUID()
 	// 打印 obj, 记录开始时间
-	fmt.Printf("key: %s, start time: %v\n", key, onChangeStart)
+	fmt.Printf("traceId %v key: %s, start time: %v, handlers : %v\n", traceId, key, onChangeStart, len(handlers))
 
 	for _, handler := range handlers {
 		var hasError bool
@@ -79,7 +81,7 @@ func (h *SharedHandler) OnChange(key string, obj runtime.Object) error {
 		newObj, err := handler.handler.OnChange(key, obj)
 
 		// 打印 key, handler name
-		fmt.Printf("key: %s, handler name: %s\n", key, handler.name)
+		fmt.Printf("traceId %v key: %s, handler name: %s\n", traceId, key, handler.name)
 
 		if err != nil && !errors.Is(err, ErrIgnore) {
 			errs = append(errs, &handlerError{
@@ -105,8 +107,8 @@ func (h *SharedHandler) OnChange(key string, obj runtime.Object) error {
 	}
 
 	// 打印 obj, 记录结束时间, 耗时
-	fmt.Printf("key: %s, time: %v, cost: %v\n", key, time.Now(), time.Since(onChangeStart).Seconds())
-	fmt.Printf("key: %s, errs: %v\n", key, errs)
+	fmt.Printf("traceId %v key: %s, time: %v, cost: %v\n", traceId, key, time.Now(), time.Since(onChangeStart).Seconds())
+
 	return errs.ToErr()
 }
 
