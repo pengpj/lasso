@@ -35,6 +35,7 @@ type SharedHandler struct {
 	handlers []handlerEntry
 }
 
+// 实现了一个注册函数 Register，通过将处理函数添加到 handlers 切片中，并在上下文完成时从 handlers 中移除相应的处理函数。这样可以动态地注册和取消注册处理函数，并保证并发安全。
 func (h *SharedHandler) Register(ctx context.Context, name string, handler SharedControllerHandler) {
 	h.lock.Lock()
 	defer h.lock.Unlock()
@@ -45,6 +46,9 @@ func (h *SharedHandler) Register(ctx context.Context, name string, handler Share
 		name:    name,
 		handler: handler,
 	})
+
+	// 打印当前 ctx name handlers 列表
+	fmt.Printf("ctx name: %s, handlers: %v\n", ctx, h.handlers)
 
 	go func() {
 		<-ctx.Done()
