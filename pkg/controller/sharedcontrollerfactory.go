@@ -2,6 +2,7 @@ package controller
 
 import (
 	"context"
+	"fmt"
 	"sync"
 
 	"github.com/rancher/lasso/pkg/cache"
@@ -218,6 +219,9 @@ func (s *sharedControllerFactory) ForResourceKind(gvr schema.GroupVersionResourc
 				RateLimiter:            rateLimiter,
 				SyncOnlyChangedObjects: s.syncOnlyChangedObjects,
 			})
+
+			// 打印 controller 中 handler 信息
+			fmt.Printf("controller: %v, handlers: %v \n", controllerResult, handler)
 
 			return c, err
 		},
