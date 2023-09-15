@@ -105,8 +105,8 @@ func (h *SharedHandler) OnChange(key string, obj runtime.Object) error {
 	}
 
 	// 打印 obj, 记录结束时间, 耗时
-	fmt.Printf("key: %s, time: %v, cost: %v\n", key, time.Now(), time.Since(onChangeStart))
-
+	fmt.Printf("key: %s, time: %v, cost: %v\n", key, time.Now(), time.Since(onChangeStart).Seconds())
+	fmt.Printf("key: %s, errs: %v\n", key, errs)
 	return errs.ToErr()
 }
 
