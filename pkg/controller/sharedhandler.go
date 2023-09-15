@@ -48,7 +48,7 @@ func (h *SharedHandler) Register(ctx context.Context, name string, handler Share
 	})
 
 	// 打印当前 ctx name handlers 列表
-	fmt.Printf("ctx name: %s, handlers: %v\n", ctx, h.handlers)
+	fmt.Printf("ctx name: %s, name: %v, handlers: %v\n", ctx, name, h.handlers)
 
 	go func() {
 		<-ctx.Done()
