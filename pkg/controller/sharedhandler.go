@@ -76,7 +76,7 @@ func (h *SharedHandler) OnChange(key string, obj runtime.Object) error {
 	onChangeStart := time.Now()
 	traceId := uuid.NewUUID()
 	// 打印 obj, 记录开始时间
-	fmt.Printf("traceId %v key: %s, start time: %v, handlers : %v\n", traceId, key, onChangeStart, len(handlers))
+	fmt.Printf("traceId %v key: %s, start time: %v, len %v, handlers : %v\n", traceId, key, onChangeStart, len(handlers), handlers)
 
 	for _, handler := range handlers {
 		var hasError bool
