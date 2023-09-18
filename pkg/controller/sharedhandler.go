@@ -48,7 +48,7 @@ func (h *SharedHandler) Register(ctx context.Context, name string, handler Share
 	})
 
 	// 打印当前 ctx name handlers 列表
-	fmt.Printf("ctx name: %s, controller name : %v name: %v, handlers: %v\n", ctx, h.controllerGVR, name, h.handlers)
+	fmt.Printf("register ctx name: %s, controller name : %v, handler name: %v, handlers: %v\n", ctx, h.controllerGVR, name, h.handlers)
 
 	go func() {
 		<-ctx.Done()
@@ -58,6 +58,8 @@ func (h *SharedHandler) Register(ctx context.Context, name string, handler Share
 
 		for i := range h.handlers {
 			if h.handlers[i].id == id {
+				// fmt 打印 ctx, handler name , handlers 列表
+				fmt.Printf("ctx done, ctx name: %s, controller name : %v, handler name: %v, handlers: %v\n", ctx, h.controllerGVR, name, h.handlers)
 				h.handlers = append(h.handlers[:i], h.handlers[i+1:]...)
 				break
 			}
@@ -75,6 +77,7 @@ func (h *SharedHandler) OnChange(key string, obj runtime.Object) error {
 
 	onChangeStart := time.Now()
 	traceId := uuid.NewUUID()
+	handlersLength := len(handlers)
 	// 打印 obj, 记录开始时间
 	fmt.Printf("traceId %v, controller %v, key: %s, start time: %v, len %v, handlers : %v\n", traceId, h.controllerGVR, key, onChangeStart, len(handlers), handlers)
 
@@ -111,8 +114,9 @@ func (h *SharedHandler) OnChange(key string, obj runtime.Object) error {
 	}
 
 	// 打印 obj, 记录结束时间, 耗时
-	fmt.Printf("traceId %v key: %s, time: %v, cost: %v\n", traceId, key, time.Now(), time.Since(onChangeStart).Seconds())
-
+	if handlersLength > 0 {
+		fmt.Printf("traceId %v key: %s, time: %v, cost: %v\n", traceId, key, time.Now(), time.Since(onChangeStart).Seconds())
+	}
 	return errs.ToErr()
 }
 
