@@ -76,7 +76,7 @@ func (h *SharedHandler) OnChange(key string, obj runtime.Object) error {
 	onChangeStart := time.Now()
 	traceId := uuid.NewUUID()
 	// 打印 obj, 记录开始时间
-	fmt.Printf("traceId %v key: %s, start time: %v, len %v, handlers : %v\n", traceId, key, onChangeStart, len(handlers), handlers)
+	fmt.Printf("traceId %v, controller %v, key: %s, start time: %v, len %v, handlers : %v\n", traceId, h.controllerGVR, key, onChangeStart, len(handlers), handlers)
 
 	for _, handler := range handlers {
 		var hasError bool
@@ -84,8 +84,8 @@ func (h *SharedHandler) OnChange(key string, obj runtime.Object) error {
 
 		newObj, err := handler.handler.OnChange(key, obj)
 
-		// 打印 key, handler name
-		fmt.Printf("traceId %v key: %s, handler name: %s\n", traceId, key, handler.name)
+		// 打印 key, handler name 处理都很快； 不再打印此处理日志
+		// fmt.Printf("traceId %v key: %s, handler name: %s\n", traceId, key, handler.name)
 
 		if err != nil && !errors.Is(err, ErrIgnore) {
 			errs = append(errs, &handlerError{
