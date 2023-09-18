@@ -148,6 +148,9 @@ func (c *controller) run(workers int, stopCh <-chan struct{}) {
 		go wait.Until(c.runWorker, time.Second, stopCh)
 	}
 
+	// fmt controller, workers, workqueue
+	fmt.Printf("run controller: [%s], workers: %d, workqueue: %v\n", c.name, workers, c.workqueue)
+
 	<-stopCh
 	c.startLock.Lock()
 	defer c.startLock.Unlock()
@@ -173,6 +176,10 @@ func (c *controller) Start(ctx context.Context, workers int) error {
 
 	go c.run(workers, ctx.Done())
 	c.started = true
+
+	// start controller, workers
+	fmt.Printf("start controller: [%s], workers: %d\n", c.name, workers)
+
 	return nil
 }
 
