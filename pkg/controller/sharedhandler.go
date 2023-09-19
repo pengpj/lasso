@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"k8s.io/apimachinery/pkg/util/uuid"
 	"reflect"
 	"strings"
 	"sync"
@@ -75,12 +74,6 @@ func (h *SharedHandler) OnChange(key string, obj runtime.Object) error {
 	handlers := h.handlers
 	h.lock.RUnlock()
 
-	onChangeStart := time.Now()
-	traceId := uuid.NewUUID()
-	handlersLength := len(handlers)
-	// 打印 obj, 记录开始时间
-	fmt.Printf("traceId %v, controller %v, key: %s, start time: %v, len %v, handlers : %v\n", traceId, h.controllerGVR, key, onChangeStart, len(handlers), handlers)
-
 	for _, handler := range handlers {
 		var hasError bool
 		reconcileStartTS := time.Now()
@@ -113,10 +106,6 @@ func (h *SharedHandler) OnChange(key string, obj runtime.Object) error {
 		}
 	}
 
-	// 打印 obj, 记录结束时间, 耗时
-	if handlersLength > 0 {
-		fmt.Printf("traceId %v key: %s, time: %v, cost: %v\n", traceId, key, time.Now(), time.Since(onChangeStart).Seconds())
-	}
 	return errs.ToErr()
 }
 
