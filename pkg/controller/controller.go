@@ -7,7 +7,6 @@ package controller
 import (
 	"context"
 	"fmt"
-	"runtime/debug"
 	"strings"
 	"sync"
 	"time"
@@ -152,9 +151,6 @@ func (c *controller) run(workers int, stopCh <-chan struct{}) {
 	// fmt controller, workers, workqueue
 	fmt.Printf("run controller: [%s], workers: %d, workqueue: %v\n", c.name, workers, c.workqueue)
 
-	// 手动打印当前的调用栈
-	debug.PrintStack()
-
 	<-stopCh
 	c.startLock.Lock()
 	defer c.startLock.Unlock()
@@ -184,8 +180,6 @@ func (c *controller) Start(ctx context.Context, workers int) error {
 	// start controller, workers
 	fmt.Printf("start controller: [%s], workers: %d\n", c.name, workers)
 
-	// 手动打印当前的调用栈
-	debug.PrintStack()
 	return nil
 }
 
