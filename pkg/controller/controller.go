@@ -249,8 +249,6 @@ func (c *controller) EnqueueKey(key string) {
 	} else {
 		c.workqueue.Add(key)
 	}
-	// 打印 controller name 和 key
-	fmt.Printf("enqueue controller name: %s, key: %s\n", c.name, key)
 }
 
 func (c *controller) Enqueue(namespace, name string) {
@@ -264,8 +262,6 @@ func (c *controller) Enqueue(namespace, name string) {
 	} else {
 		c.workqueue.AddRateLimited(key)
 	}
-	// 打印 controller name 和 key
-	fmt.Printf("enqueue controller name: %s, key: %s\n", c.name, key)
 }
 
 func (c *controller) EnqueueAfter(namespace, name string, duration time.Duration) {
