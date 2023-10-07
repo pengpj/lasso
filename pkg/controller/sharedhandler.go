@@ -107,15 +107,19 @@ func (h *SharedHandler) OnChange(key string, obj runtime.Object) error {
 			}
 		}
 
-		// 耗时 > 5s 打印 key, handler name, 耗时
-		if time.Since(start).Seconds() > 5 {
-			fmt.Printf("key: %s, controller name: %s, handler name: %s, total time: %v s\n", key, h.controllerGVR, handler.name, time.Since(start).Seconds())
+		if h.controllerGVR == "management.cattle.io/v3, Resource=clusters" {
+			if time.Since(start).Seconds() > 5 {
+				fmt.Printf("key: %s, controller name: %s, handler name: %s, total time: %v s\n", key, h.controllerGVR, handler.name, time.Since(start).Seconds())
+			}
+			if err != nil {
+				fmt.Printf("key: %s, controller name: %s, handler name: %s, err: %v\n", key, h.controllerGVR, handler.name, err)
+			}
 		}
 	}
 
 	// 如果 gvk == version management.cattle.io/v3, kind Cluster ，打印耗时
 	if h.controllerGVR == "management.cattle.io/v3, Resource=clusters" {
-		fmt.Printf("key: %s, controller name: %s, total time: %v ms\n", key, h.controllerGVR, time.Since(start).Milliseconds())
+		fmt.Printf("key: %s, controller name: %s, all total time: %v ms\n", key, h.controllerGVR, time.Since(start).Milliseconds())
 	}
 
 	return errs.ToErr()
