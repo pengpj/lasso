@@ -106,6 +106,11 @@ func (h *SharedHandler) OnChange(key string, obj runtime.Object) error {
 				obj = newObj
 			}
 		}
+
+		// 耗时 > 5s 打印 key, handler name, 耗时
+		if time.Since(start).Seconds() > 5 {
+			fmt.Printf("key: %s, controller name: %s, handler name: %s, total time: %v s\n", key, h.controllerGVR, handler.name, time.Since(start).Seconds())
+		}
 	}
 
 	// 如果 gvk == version management.cattle.io/v3, kind Cluster ，打印耗时
