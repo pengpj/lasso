@@ -74,6 +74,8 @@ func (h *SharedHandler) OnChange(key string, obj runtime.Object) error {
 	handlers := h.handlers
 	h.lock.RUnlock()
 
+	start := time.Now()
+
 	for _, handler := range handlers {
 		var hasError bool
 		reconcileStartTS := time.Now()
@@ -104,6 +106,12 @@ func (h *SharedHandler) OnChange(key string, obj runtime.Object) error {
 				obj = newObj
 			}
 		}
+	}
+
+	// 如果是management.cattle.io/v3, Kind=Cluster，打印耗时
+	if strings.Contains(h.controllerGVR, "management.cattle.io/v3") && strings.Contains(h.controllerGVR, "Cluster") {
+		// 打印耗时 ms，不足 1ms 的记为 0ms
+		fmt.Printf("key: %s, controller name: %s, total time: %v ms\n", key, h.controllerGVR, time.Since(start).Milliseconds())
 	}
 
 	return errs.ToErr()
