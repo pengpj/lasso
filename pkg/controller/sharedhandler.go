@@ -108,8 +108,8 @@ func (h *SharedHandler) OnChange(key string, obj runtime.Object) error {
 		}
 	}
 
-	// 如果 versionmanagement.cattle.io/v3, kindCluster ，打印耗时
-	if obj.GetObjectKind().GroupVersionKind().Kind == "Cluster" && obj.GetObjectKind().GroupVersionKind().Group == "management.cattle.io/v3" {
+	// 如果 gvk == version management.cattle.io/v3, kind Cluster ，打印耗时
+	if h.controllerGVR == "management.cattle.io/v3, Resource=clusters" {
 		fmt.Printf("key: %s, controller name: %s, total time: %v ms\n", key, h.controllerGVR, time.Since(start).Milliseconds())
 	}
 
