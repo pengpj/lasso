@@ -219,7 +219,14 @@ func (c *controller) processSingleItem(obj interface{}) error {
 		return nil
 	}
 	if err := c.syncHandler(key); err != nil {
-		c.workqueue.AddRateLimited(key)
+		// 如果无法连接上集群，将 key 重新加入到 workqueue 中，等待下次重试，并设置一个较大的延迟
+		// 减少对资源的频繁操作
+		if strings.Contains(err.Error(), "cluster agent disconnected, requeuing") {
+			c.workqueue.AddAfter(key, 1440*time.Second)
+			log.Errorf("error syncing '%#v': %#v, requeuing after 1440s", key, err.Error())
+		} else {
+			c.workqueue.AddRateLimited(key)
+		}
 		return fmt.Errorf("error syncing '%s': %s, requeuing", key, err.Error())
 	}
 
