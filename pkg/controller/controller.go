@@ -7,6 +7,7 @@ package controller
 import (
 	"context"
 	"fmt"
+	"k8s.io/apimachinery/pkg/api/meta"
 	"strings"
 	"sync"
 	"time"
@@ -222,11 +223,30 @@ func (c *controller) processSingleItem(obj interface{}) error {
 		// 如果无法连接上集群，将 key 重新加入到 workqueue 中，等待下次重试，并设置一个较大的延迟
 		// 减少对资源的频繁操作
 		if strings.Contains(err.Error(), "cluster agent disconnected") {
-			c.workqueue.AddAfter(key, 1440*time.Second)
-			fmt.Printf("error syncing '%v': %v, requeuing after 1440s\n", key, err.Error())
+			// 获取到 key 资源对象的创建时间
+			item, exits, myErr := c.Informer().GetStore().GetByKey(key)
+			if !exits || myErr != nil {
+				// key store 中不存在，直接将 key 放入 workqueue 中
+				fmt.Printf("error syncing key: %s not exits in store, add to workqueue\n", key)
+				c.workqueue.AddRateLimited(key)
+			} else {
+				itemMeta, accErr := meta.Accessor(item)
+				if accErr == nil {
+					// 判断 item 的创建时间是否超过 1d ，如果超过 1d 则放入延时队列中
+					if time.Now().Sub(itemMeta.GetCreationTimestamp().Time) > 24*time.Hour {
+						c.workqueue.AddAfter(key, 360*time.Second)
+						fmt.Printf("error syncing key: %s, add to workqueue after 360s\n", key)
+					}
+				} else {
+					// 获取 item 创建时间失败，直接将 key 放入 workqueue 中
+					c.workqueue.AddRateLimited(key)
+					fmt.Printf("error syncing key: %s, get item creation time error: %v, add to workqueue\n", key, accErr)
+				}
+			}
 		} else {
 			c.workqueue.AddRateLimited(key)
 		}
+
 		return fmt.Errorf("error syncing '%s': %s, requeuing", key, err.Error())
 	}
 
