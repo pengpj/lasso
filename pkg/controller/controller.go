@@ -8,6 +8,7 @@ import (
 	"context"
 	"fmt"
 	"k8s.io/apimachinery/pkg/api/meta"
+	"k8s.io/apimachinery/pkg/util/rand"
 	"strings"
 	"sync"
 	"time"
@@ -227,20 +228,27 @@ func (c *controller) processSingleItem(obj interface{}) error {
 			item, exits, myErr := c.Informer().GetStore().GetByKey(key)
 			if !exits || myErr != nil {
 				// key store 中不存在，直接将 key 放入 workqueue 中
-				fmt.Printf("error syncing key: %s not exits in store, add to workqueue\n", key)
+				fmt.Printf("error syncing key: %s not exits in store, requeuing\n", key)
 				c.workqueue.AddRateLimited(key)
 			} else {
 				itemMeta, accErr := meta.Accessor(item)
 				if accErr == nil {
 					// 判断 item 的创建时间是否超过 1d ，如果超过 1d 则放入延时队列中
 					if time.Now().Sub(itemMeta.GetCreationTimestamp().Time) > 24*time.Hour {
-						c.workqueue.AddAfter(key, 360*time.Second)
-						fmt.Printf("error syncing key: %s, add to workqueue after 360s\n", key)
+						// 在 [700 ~ 800] 之间随机生成一个数，作为延时时间
+						rand.Seed(time.Now().UnixNano())
+						delay := rand.Intn(100) + 700
+						c.workqueue.AddAfter(key, time.Duration(delay)*time.Second)
+						fmt.Printf("error syncing key: %s, creation time > 24h, requeuing after %ss\n", key, delay)
+					} else {
+						// 创建时间未超过 1d，直接将 key 放入 workqueue 中
+						c.workqueue.AddRateLimited(key)
+						fmt.Printf("error syncing key: %s, creation time < 24h, requeuing\n", key)
 					}
 				} else {
 					// 获取 item 创建时间失败，直接将 key 放入 workqueue 中
 					c.workqueue.AddRateLimited(key)
-					fmt.Printf("error syncing key: %s, get item creation time error: %v, add to workqueue\n", key, accErr)
+					fmt.Printf("error syncing key: %s, get item creation time error: %v, requeuing\n", key, accErr)
 				}
 			}
 		} else {
