@@ -223,7 +223,7 @@ func (c *controller) processSingleItem(obj interface{}) error {
 		// 减少对资源的频繁操作
 		if strings.Contains(err.Error(), "cluster agent disconnected, requeuing") {
 			c.workqueue.AddAfter(key, 1440*time.Second)
-			log.Errorf("error syncing '%#v': %#v, requeuing after 1440s", key, err.Error())
+			fmt.Printf("error syncing '%v': %v, requeuing after 1440s\n", key, err.Error())
 		} else {
 			c.workqueue.AddRateLimited(key)
 		}
