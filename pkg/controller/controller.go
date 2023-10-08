@@ -234,16 +234,16 @@ func (c *controller) processSingleItem(obj interface{}) error {
 				itemMeta, accErr := meta.Accessor(item)
 				if accErr == nil {
 					// 判断 item 的创建时间是否超过 1d ，如果超过 1d 则放入延时队列中
-					if time.Now().Sub(itemMeta.GetCreationTimestamp().Time) > 24*time.Hour {
+					if time.Now().Sub(itemMeta.GetCreationTimestamp().Time) > 48*time.Hour {
 						// 在 [700 ~ 800] 之间随机生成一个数，作为延时时间
 						rand.Seed(time.Now().UnixNano())
 						delay := rand.Intn(100) + 700
 						c.workqueue.AddAfter(key, time.Duration(delay)*time.Second)
-						fmt.Printf("error syncing key: %s, creation time > 24h, requeuing after %ss\n", key, delay)
+						fmt.Printf("error syncing key: %s, creation time > 48h, requeuing after %d s\n", key, delay)
 					} else {
 						// 创建时间未超过 1d，直接将 key 放入 workqueue 中
 						c.workqueue.AddRateLimited(key)
-						fmt.Printf("error syncing key: %s, creation time < 24h, requeuing\n", key)
+						fmt.Printf("error syncing key: %s, creation time < 48h, requeuing\n", key)
 					}
 				} else {
 					// 获取 item 创建时间失败，直接将 key 放入 workqueue 中
