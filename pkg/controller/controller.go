@@ -233,11 +233,11 @@ func (c *controller) processSingleItem(obj interface{}) error {
 			} else {
 				itemMeta, accErr := meta.Accessor(item)
 				if accErr == nil {
-					// 判断 item 的创建时间是否超过 1d ，如果超过 1d 则放入延时队列中
+					// 判断 item 的创建时间是否超过 2d ，如果超过 2d 则放入延时队列中
 					if time.Now().Sub(itemMeta.GetCreationTimestamp().Time) > 48*time.Hour {
-						// 在 [700 ~ 800] 之间随机生成一个数，作为延时时间
+						// 在 [1800 ~ 2200] 之间随机生成一个数，作为延时时间
 						rand.Seed(time.Now().UnixNano())
-						delay := rand.Intn(100) + 700
+						delay := rand.Intn(400) + 1800
 						c.workqueue.AddAfter(key, time.Duration(delay)*time.Second)
 						fmt.Printf("error syncing key: %s, creation time > 48h, requeuing after %d s\n", key, delay)
 					} else {
