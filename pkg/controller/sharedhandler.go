@@ -109,7 +109,7 @@ func (h *SharedHandler) OnChange(key string, obj runtime.Object) error {
 
 		if h.controllerGVR == "management.cattle.io/v3, Resource=clusters" {
 			if time.Since(start).Seconds() > 5 {
-				fmt.Printf("key: %s, controller name: %s, handler name: %s, total time: %v s\n", key, h.controllerGVR, handler.name, time.Since(start).Seconds())
+				fmt.Printf("key: %s, controller name: %s, handler name: %s, time: %v s\n", key, h.controllerGVR, handler.name, int(time.Since(start).Seconds()))
 			}
 			if err != nil {
 				fmt.Printf("key: %s, controller name: %s, handler name: %s, err: %v\n", key, h.controllerGVR, handler.name, err)
@@ -119,7 +119,8 @@ func (h *SharedHandler) OnChange(key string, obj runtime.Object) error {
 
 	// 如果 gvk == version management.cattle.io/v3, kind Cluster ，打印耗时
 	if h.controllerGVR == "management.cattle.io/v3, Resource=clusters" {
-		fmt.Printf("key: %s, controller name: %s, all total time: %v ms\n", key, h.controllerGVR, time.Since(start).Milliseconds())
+		// 打印整数秒，忽略小数点后面的时间
+		fmt.Printf("key: %s, controller name: %s, all total time: %v s\n", key, h.controllerGVR, int(time.Since(start).Seconds()))
 	}
 
 	return errs.ToErr()
