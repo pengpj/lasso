@@ -2,6 +2,8 @@ package controller
 
 import (
 	"context"
+	"fmt"
+	"strings"
 	"sync"
 	"time"
 
@@ -113,12 +115,29 @@ func (s *sharedController) RegisterHandler(ctx context.Context, name string, han
 	c := s.initController()
 
 	getHandlerTransaction(ctx).do(func() {
+		// do register handler contex
+		fmt.Printf("do register handler: %s, %v, context: %#v\n", name, handler, ctx)
+
 		s.handler.Register(ctx, name, handler)
 
 		s.startLock.Lock()
 		defer s.startLock.Unlock()
 		if s.started {
+			fmt.Printf(">>> shared controller started, ctx: %#v\n", ctx)
+			// 如果 ctx pzcm 不为空，且 pzcm start with 'c-m-' 且不包含 '/'，则打印 ctx
+			// pzcm 是在 rancher clustermanager.manager.go 中传递过来的
+			// 用于避免其它离线的 cluster name 入队
+			if ctx.Value("pzcm") != nil && ctx.Value("pzcm").(string) != "" {
+				pzcm := ctx.Value("pzcm").(string)
+				if pzcm[:4] == "c-m-" && !strings.Contains(pzcm, "/") {
+					c.EnqueueKey(ctx.Value("pzcm").(string))
+					fmt.Printf("pzcm enqueue key: %s single !!!\n", pzcm)
+					return
+				}
+			}
 			for _, key := range c.Informer().GetStore().ListKeys() {
+				// 注释掉这一行，fleet agent 耗时超过 6min 才会部署；
+				// 怀疑与自身 5min 的资源循环周期有关；但还不明确
 				c.EnqueueKey(key)
 			}
 		}
